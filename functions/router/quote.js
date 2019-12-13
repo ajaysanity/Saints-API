@@ -13,11 +13,11 @@ router.get("/quote", async (req, res) => {
                 snapshot.forEach(doc => {
                     console.log(doc.id, '=>', doc.data());
                     let data = doc.data();
-                    let finalData ={
+                    let finalData = {
                         id: doc.id,
                         ...data
                     }
-                    dataObj.push(finalData);
+                    dataObj.push({data: finalData});
                 });
                 return res.status(200).send(dataObj);
             }
@@ -47,5 +47,30 @@ router.get("/quote", async (req, res) => {
 
 })
 
+router.get("/search", async(req,res) => {
+    author = req.query.author
+    dataObj = []
+    let quoteRef = adminFire.collection('RawQuote');
+    quoteRef.where('author', '>=', author).where('author', '<=', `${author}\uf8ff`)
+    .get().then( snapshot => {
+        if (snapshot.empty) {
+            return res.status(401).send({message: 'Not Found'});
+    
+          }  
+      
+          snapshot.forEach(doc => {
+              let datum ={
+                  id: doc.id,
+                  ...doc.data()
+              }
+              dataObj.push(datum)
+          })
+          return res.status(200).send({data: dataObj});
+        })
+        .catch(err => {
+            return res.status(401).send('Error Something Went Wrong')
+        });
+    
+})
 
 module.exports = router;
